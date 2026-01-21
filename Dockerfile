@@ -35,6 +35,14 @@ RUN mkdir -p /var/run/sshd && \
     ssh-keygen -A && \
     echo "StrictHostKeyChecking no" >> /etc/ssh/ssh_config
 
+# ---- Configure passwordless SSH for root (Hadoop requirement) ----
+RUN mkdir -p /root/.ssh && \
+    ssh-keygen -t rsa -P "" -f /root/.ssh/id_rsa && \
+    cat /root/.ssh/id_rsa.pub >> /root/.ssh/authorized_keys && \
+    chmod 600 /root/.ssh/authorized_keys && \
+    chmod 700 /root/.ssh && \
+    echo "StrictHostKeyChecking no" >> /etc/ssh/ssh_config
+
 # ---- Install Hadoop ----
 RUN curl -fsSL https://archive.apache.org/dist/hadoop/common/hadoop-${HADOOP_VERSION}/hadoop-${HADOOP_VERSION}.tar.gz \
  | tar -xz -C /opt \

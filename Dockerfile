@@ -8,7 +8,7 @@ ENV HADOOP_HOME=/opt/hadoop
 ENV SPARK_HOME=/opt/spark
 ENV JAVA_HOME=/opt/java/openjdk
 
-# ---- PATH (Java first, Hadoop scripts are picky) ----
+# ---- PATH ----
 ENV PATH=$JAVA_HOME/bin:$HADOOP_HOME/bin:$HADOOP_HOME/sbin:$SPARK_HOME/bin:$PATH
 
 # ---- Allow Hadoop/YARN to run as root (Docker/dev only) ----
@@ -18,29 +18,25 @@ ENV HDFS_SECONDARYNAMENODE_USER=root
 ENV YARN_RESOURCEMANAGER_USER=root
 ENV YARN_NODEMANAGER_USER=root
 
-# ---- Install OS deps ----
+# ---- OS deps ----
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3 \
     python3-pip \
     curl \
     openssh-server \
-    ssh \
     rsync \
     bash \
     tini \
  && rm -rf /var/lib/apt/lists/*
 
-# ---- SSH setup for Hadoop ----
+# ---- SSH setup (Hadoop requires this) ----
 RUN mkdir -p /var/run/sshd && \
     ssh-keygen -A && \
-    echo "StrictHostKeyChecking no" >> /etc/ssh/ssh_config
-
-# ---- Configure passwordless SSH for root (Hadoop requirement) ----
-RUN mkdir -p /root/.ssh && \
+    mkdir -p /root/.ssh && \
     ssh-keygen -t rsa -P "" -f /root/.ssh/id_rsa && \
     cat /root/.ssh/id_rsa.pub >> /root/.ssh/authorized_keys && \
-    chmod 600 /root/.ssh/authorized_keys && \
     chmod 700 /root/.ssh && \
+    chmod 600 /root/.ssh/authorized_keys && \
     echo "StrictHostKeyChecking no" >> /etc/ssh/ssh_config
 
 # ---- Install Hadoop ----
@@ -48,14 +44,21 @@ RUN curl -fsSL https://archive.apache.org/dist/hadoop/common/hadoop-${HADOOP_VER
  | tar -xz -C /opt \
  && mv /opt/hadoop-${HADOOP_VERSION} ${HADOOP_HOME}
 
-# ---- Tell Hadoop where Java lives (CRITICAL FIX) ----
+# ---- Hadoop needs explicit JAVA_HOME ----
 RUN sed -i "s|^# export JAVA_HOME=.*|export JAVA_HOME=${JAVA_HOME}|" \
     ${HADOOP_HOME}/etc/hadoop/hadoop-env.sh
 
-# ---- Install Spark (without bundled Hadoop) ----
+# ---- Install Spark (WITHOUT Hadoop) ----
 RUN curl -fsSL https://archive.apache.org/dist/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-without-hadoop.tgz \
  | tar -xz -C /opt \
  && mv /opt/spark-${SPARK_VERSION}-bin-without-hadoop ${SPARK_HOME}
+
+# ---- Spark env (NOW Spark exists) ----
+RUN mkdir -p ${SPARK_HOME}/conf && \
+    echo "export JAVA_HOME=${JAVA_HOME}" >> ${SPARK_HOME}/conf/spark-env.sh && \
+    echo "export HADOOP_HOME=${HADOOP_HOME}" >> ${SPARK_HOME}/conf/spark-env.sh && \
+    echo "export SPARK_DIST_CLASSPATH=\$(${HADOOP_HOME}/bin/hadoop classpath)" \
+         >> ${SPARK_HOME}/conf/spark-env.sh
 
 # ---- Hadoop data dirs ----
 RUN mkdir -p \
@@ -105,22 +108,22 @@ RUN printf '<?xml version="1.0"?>\n\
   </property>\n\
 </configuration>' > ${HADOOP_HOME}/etc/hadoop/mapred-site.xml
 
-# ---- Spark config (run on YARN) ----
+# ---- Spark defaults ----
 RUN printf 'spark.master yarn\n\
 spark.eventLog.enabled true\n\
-spark.eventLog.dir hdfs:///spark-logs\n' > ${SPARK_HOME}/conf/spark-defaults.conf
+spark.eventLog.dir hdfs:///spark-logs\n' \
+> ${SPARK_HOME}/conf/spark-defaults.conf
 
 # ---- PySpark ----
 RUN pip3 install --no-cache-dir pyspark==${SPARK_VERSION}
 
-# ---- Format HDFS (single-node dev setup) ----
-RUN hdfs namenode -format
+# ---- Format HDFS (single-node dev ONLY) ----
+RUN hdfs namenode -format -force
 
-# ---- Startup script ----
+# ---- Startup ----
 COPY start.sh /start.sh
 RUN chmod +x /start.sh
 
-# ---- Ports ----
 EXPOSE 9870 8088 4040
 
 ENTRYPOINT ["/usr/bin/tini", "--"]

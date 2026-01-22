@@ -11,7 +11,7 @@ ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         curl \
-        openjdk-17-jdk \
+        openjdk-17-jdk-headless \
         bash \
         tini \
     && rm -rf /var/lib/apt/lists/*

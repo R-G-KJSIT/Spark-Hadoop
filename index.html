@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Spark-Hadoop Docker Image</title>
+
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #020617;
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --code: #020617;
+      --border: #1e293b;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        sans-serif;
+    }
+
+    body {
+      margin: 0;
+      background: linear-gradient(180deg, #020617, #0f172a);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    header {
+      padding: 4rem 1.5rem;
+      text-align: center;
+    }
+
+    header h1 {
+      font-size: 3rem;
+      margin-bottom: 0.5rem;
+    }
+
+    header p {
+      color: var(--muted);
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    main {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 4rem;
+    }
+
+    section {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    h2 {
+      margin-top: 0;
+      color: var(--accent);
+    }
+
+    pre {
+      background: var(--code);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+      overflow-x: auto;
+      color: #e5e7eb;
+    }
+
+    code {
+      color: #e5e7eb;
+    }
+
+    ul {
+      padding-left: 1.25rem;
+    }
+
+    a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    footer {
+      text-align: center;
+      padding: 2rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .badge {
+      display: inline-block;
+      background: #020617;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 0.25rem 0.75rem;
+      font-size: 0.85rem;
+      margin: 0.25rem;
+      color: var(--muted);
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>Spark-Hadoop Docker Image</h1>
+    <p>
+      A lightweight Docker image providing Apache Spark with Hadoop libraries
+      and a ready-to-use PySpark environment for local data processing.
+    </p>
+    <div>
+      <span class="badge">Apache Spark</span>
+      <span class="badge">Hadoop</span>
+      <span class="badge">PySpark</span>
+      <span class="badge">Java 17</span>
+      <span class="badge">Docker</span>
+    </div>
+  </header>
+
+  <main>
+    <section>
+      <h2>Overview</h2>
+      <p>
+        This container bundles Apache Spark built with Hadoop support and runs
+        on Java 17, making it ideal for experimenting with Spark, learning
+        distributed data processing, and testing Spark jobs locally without
+        setting up a full cluster.
+      </p>
+      <p>
+        The container launches directly into a PySpark shell by default, so you
+        can start writing Spark code immediately.
+      </p>
+    </section>
+
+    <section>
+      <h2>Pull the Image</h2>
+      <pre><code>docker pull rgkj/spark-hadoop:latest</code></pre>
+    </section>
+
+    <section>
+      <h2>Run PySpark (Default)</h2>
+      <p>
+        Running the container without arguments launches an interactive
+        PySpark shell.
+      </p>
+      <pre><code>docker run -it rgkj/spark-hadoop</code></pre>
+
+      <p>Example inside PySpark:</p>
+      <pre><code>spark.range(10).show()</code></pre>
+    </section>
+
+    <section>
+      <h2>Access Bash (Root Shell)</h2>
+      <p>
+        If you want full shell access inside the container as the root user,
+        run:
+      </p>
+      <pre><code>docker run -it rgkj/spark-hadoop /bin/bash</code></pre>
+
+      <p>
+        From here you can manually start Spark, inspect files, or install extra
+        tools.
+      </p>
+    </section>
+
+    <section>
+      <h2>Run Spark Shell (Scala)</h2>
+      <p>
+        To use the Scala Spark shell instead of PySpark:
+      </p>
+      <pre><code>docker run -it rgkj/spark-hadoop spark-shell</code></pre>
+    </section>
+
+    <section>
+      <h2>Exposing Spark UI</h2>
+      <p>
+        Spark's web UI is available on port <strong>4040</strong>. To access it
+        from your browser:
+      </p>
+      <pre><code>docker run -it -p 4040:4040 rgkj/spark-hadoop</code></pre>
+    </section>
+
+    <section>
+      <h2>Helpful Links</h2>
+      <ul>
+        <li>
+          <a href="https://spark.apache.org/docs/latest/" target="_blank">
+            Apache Spark Documentation
+          </a>
+        </li>
+        <li>
+          <a href="https://hadoop.apache.org/docs/" target="_blank">
+            Apache Hadoop Documentation
+          </a>
+        </li>
+        <li>
+          <a href="https://hub.docker.com/r/rgkj/spark-hadoop" target="_blank">
+            Docker Hub Repository
+          </a>
+        </li>
+        <li>
+          <a href="https://spark.apache.org/examples.html" target="_blank">
+            Spark Examples
+          </a>
+        </li>
+      </ul>
+    </section>
+  </main>
+
+  <footer>
+    Built for learning, experimentation, and local Spark development.
+  </footer>
+
+  <script>
+    // Tiny enhancement: log a friendly message
+    console.log("Spark-Hadoop container landing page loaded");
+  </script>
+</body>
+</html>
